@@ -583,6 +583,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
   int _score = 0;
   int _questionsAnswered = 0;
   String _feedback = '';
+  bool _showFeedbackBorder = false;
+  bool _isCorrectAnswer = false;
   
   // All math facts (filtered by operation)
   List<MathFact> _allFacts = [];
@@ -720,6 +722,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
     setState(() {
       _userAnswer = '';
       _feedback = '';
+      _showFeedbackBorder = false;
     });
     
     // Clear the text field
@@ -744,6 +747,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     setState(() {
       _questionsAnswered++;
+      _showFeedbackBorder = true;
+      _isCorrectAnswer = isCorrect;
       if (isCorrect) {
         _score++;
         _feedback = 'Correct! Great job! 🎉';
@@ -755,8 +760,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
     // Save progress to persistent storage
     _saveProgress();
 
-    // Auto-generate new problem after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    // Auto-generate new problem - shorter delay for correct, longer for incorrect
+    final delay = isCorrect ? const Duration(milliseconds: 800) : const Duration(seconds: 3);
+    Future.delayed(delay, () {
       if (mounted) {
         _selectNextFact(); // This will also handle focusing
       }
@@ -969,18 +975,30 @@ class _PracticeScreenState extends State<PracticeScreen> {
       );
     }
     
+    // Determine border color based on feedback state
+    Color? borderColor;
+    if (_showFeedbackBorder) {
+      borderColor = _isCorrectAnswer ? Colors.green : Colors.red;
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         backgroundColor: color,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+      body: Container(
+        decoration: BoxDecoration(
+          border: borderColor != null 
+            ? Border.all(color: borderColor, width: 8)
+            : null,
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
             // Score display
             Container(
               padding: const EdgeInsets.all(16),
@@ -1092,6 +1110,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
               ),
           ],
         ),
+          ),
         ),
       ),
     );
