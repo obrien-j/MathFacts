@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html show window;
+import 'storage_interface.dart';
+import 'storage_web.dart' if (dart.library.io) 'storage_mobile.dart';
 
 // Model for individual math facts
 class MathFact {
@@ -82,125 +80,80 @@ class MathFactsStorage {
   factory MathFactsStorage() => _instance;
   MathFactsStorage._internal();
   
-  // Cache the SharedPreferences instance
-  SharedPreferences? _prefs;
+  // Abstract storage implementation
+  final StorageInterface _storage = getStorage();
   
-  Future<SharedPreferences> _getPrefs() async {
-    _prefs ??= await SharedPreferences.getInstance();
-    return _prefs!;
-  }
-  
-  /// Save string to storage (web-compatible)
+  /// Save string to storage
   Future<bool> _saveString(String key, String value) async {
-    if (kIsWeb) {
-      try {
-        html.window.localStorage[key] = value;
-        print('   Web localStorage: Saved to $key');
-        return true;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return false;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return await prefs.setString(key, value);
+    try {
+      await _storage.setString(key, value);
+      return true;
+    } catch (e) {
+      print('   Storage error: $e');
+      return false;
     }
   }
   
-  /// Load string from storage (web-compatible)
+  /// Load string from storage
   Future<String?> _loadString(String key) async {
-    if (kIsWeb) {
-      try {
-        final value = html.window.localStorage[key];
-        print('   Web localStorage: Loaded from $key (${value?.length ?? 0} bytes)');
-        return value;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return null;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return prefs.getString(key);
+    try {
+      return await _storage.getString(key);
+    } catch (e) {
+      print('   Storage error: $e');
+      return null;
     }
   }
   
-  /// Save int to storage (web-compatible)
+  /// Save int to storage
   Future<bool> _saveInt(String key, int value) async {
-    if (kIsWeb) {
-      try {
-        html.window.localStorage[key] = value.toString();
-        return true;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return false;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return await prefs.setInt(key, value);
+    try {
+      await _storage.setInt(key, value);
+      return true;
+    } catch (e) {
+      print('   Storage error: $e');
+      return false;
     }
   }
   
-  /// Load int from storage (web-compatible)
+  /// Load int from storage
   Future<int?> _loadInt(String key) async {
-    if (kIsWeb) {
-      try {
-        final value = html.window.localStorage[key];
-        return value != null ? int.tryParse(value) : null;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return null;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return prefs.getInt(key);
+    try {
+      return await _storage.getInt(key);
+    } catch (e) {
+      print('   Storage error: $e');
+      return null;
     }
   }
   
-  /// Remove key from storage (web-compatible)
+  /// Remove key from storage
   Future<bool> _remove(String key) async {
-    if (kIsWeb) {
-      try {
-        html.window.localStorage.remove(key);
-        return true;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return false;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return await prefs.remove(key);
+    try {
+      await _storage.remove(key);
+      return true;
+    } catch (e) {
+      print('   Storage error: $e');
+      return false;
     }
   }
   
-  /// Save bool to storage (web-compatible)
+  /// Save bool to storage
   Future<bool> _saveBool(String key, bool value) async {
-    if (kIsWeb) {
-      try {
-        html.window.localStorage[key] = value.toString();
-        return true;
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return false;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return await prefs.setBool(key, value);
+    try {
+      await _storage.setBool(key, value);
+      return true;
+    } catch (e) {
+      print('   Storage error: $e');
+      return false;
     }
   }
   
-  /// Load bool from storage (web-compatible)
+  /// Load bool from storage
   Future<bool> _loadBool(String key) async {
-    if (kIsWeb) {
-      try {
-        final value = html.window.localStorage[key];
-        return value == 'true';
-      } catch (e) {
-        print('   Web localStorage error: $e');
-        return false;
-      }
-    } else {
-      final prefs = await _getPrefs();
-      return prefs.getBool(key) ?? false;
+    try {
+      return await _storage.getBool(key);
+    } catch (e) {
+      print('   Storage error: $e');
+      return false;
     }
   }
   
@@ -301,12 +254,6 @@ class MathFactsStorage {
   /// Load all math facts from persistent storage
   Future<List<MathFact>?> loadFacts() async {
     print('🔍 Storage: Loading facts...');
-    
-    if (kIsWeb) {
-      print('   Using web localStorage');
-      final keys = html.window.localStorage.keys;
-      print('   All keys: $keys');
-    }
     
     final factsString = await _loadString(_storageKey);
     
