@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'storage_interface.dart';
 import 'storage_web.dart' if (dart.library.io) 'storage_mobile.dart';
 
@@ -497,9 +498,13 @@ class HomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                PracticeButton(operation: '+'),
+                Flexible(
+                  child: PracticeButton(operation: '+'),
+                ),
                 SizedBox(width: 20),
-                PracticeButton(operation: '-'),
+                Flexible(
+                  child: PracticeButton(operation: '-'),
+                ),
               ],
             ),
             SizedBox(height: 30),
@@ -554,8 +559,8 @@ class PracticeButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        textStyle: const TextStyle(fontSize: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        textStyle: const TextStyle(fontSize: 16),
       ),
       child: Text(label),
     );
@@ -717,13 +722,8 @@ class _PracticeScreenState extends State<PracticeScreen> {
       _feedback = '';
     });
     
-    // Clear the text field and request focus
+    // Clear the text field
     _answerController.clear();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _answerFocusNode.requestFocus();
-      }
-    });
   }
 
   void _checkAnswer() {
@@ -761,6 +761,141 @@ class _PracticeScreenState extends State<PracticeScreen> {
         _selectNextFact(); // This will also handle focusing
       }
     });
+  }
+  
+  /// Handle number pad button press
+  void _onNumberPressed(String number) {
+    setState(() {
+      _userAnswer += number;
+      _answerController.text = _userAnswer;
+    });
+  }
+  
+  /// Handle backspace button press
+  void _onBackspace() {
+    if (_userAnswer.isNotEmpty) {
+      setState(() {
+        _userAnswer = _userAnswer.substring(0, _userAnswer.length - 1);
+        _answerController.text = _userAnswer;
+      });
+    }
+  }
+  
+  /// Handle clear button press
+  void _onClear() {
+    setState(() {
+      _userAnswer = '';
+      _answerController.clear();
+    });
+  }
+  
+  /// Build custom number pad widget
+  Widget _buildNumberPad() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        children: [
+          // Row 1: 1, 2, 3
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNumberButton('1'),
+              _buildNumberButton('2'),
+              _buildNumberButton('3'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Row 2: 4, 5, 6
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNumberButton('4'),
+              _buildNumberButton('5'),
+              _buildNumberButton('6'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Row 3: 7, 8, 9
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildNumberButton('7'),
+              _buildNumberButton('8'),
+              _buildNumberButton('9'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Row 4: Clear, 0, Backspace
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildActionButton('C', _onClear, Colors.red),
+              _buildNumberButton('0'),
+              _buildActionButton('⌫', _onBackspace, Colors.orange),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Submit button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _checkAnswer,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              child: const Text('Check Answer ✓'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Build a number button
+  Widget _buildNumberButton(String number) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ElevatedButton(
+          onPressed: () => _onNumberPressed(number),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade100,
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(number),
+        ),
+      ),
+    );
+  }
+  
+  /// Build an action button (Clear, Backspace)
+  Widget _buildActionButton(String label, VoidCallback onPressed, Color baseColor) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: baseColor.withOpacity(0.2),
+            foregroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(label),
+        ),
+      ),
+    );
   }
   
   /// Save progress to persistent storage (saves all facts, not just current operation)
@@ -840,11 +975,12 @@ class _PracticeScreenState extends State<PracticeScreen> {
         backgroundColor: color,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
             // Score display
             Container(
               padding: const EdgeInsets.all(16),
@@ -879,66 +1015,53 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             
             // Math problem
             Card(
               elevation: 4,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     Text(
                       _currentFact != null ? '${_currentFact!.factString} = ?' : 'Loading...',
                       style: const TextStyle(
-                        fontSize: 32,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                     
-                    // Answer input
+                    // Answer input (read-only, uses custom number pad)
                     SizedBox(
-                      width: 120,
+                      width: 150,
                       child: TextField(
                         controller: _answerController,
-                        focusNode: _answerFocusNode,
-                        autofocus: true,
-                        onChanged: (value) {
-                          _userAnswer = value;
-                        },
-                        onSubmitted: (_) => _checkAnswer(),
-                        keyboardType: TextInputType.number,
+                        readOnly: true,
+                        showCursor: true,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24),
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          hintStyle: TextStyle(fontSize: 24),
+                          hintText: '?',
+                          hintStyle: TextStyle(fontSize: 28),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     
-                    // Submit button
-                    ElevatedButton(
-                      onPressed: _checkAnswer,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: const Text('Check Answer'),
-                    ),
+                    // Custom Number Pad
+                    _buildNumberPad(),
+                    
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             
             // Feedback
             if (_feedback.isNotEmpty)
@@ -968,6 +1091,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 ),
               ),
           ],
+        ),
         ),
       ),
     );
