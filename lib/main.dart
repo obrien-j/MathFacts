@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'storage_interface.dart';
 import 'storage_web.dart' if (dart.library.io) 'storage_mobile.dart';
 
@@ -90,7 +89,7 @@ class MathFactsStorage {
       await _storage.setString(key, value);
       return true;
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return false;
     }
   }
@@ -100,7 +99,7 @@ class MathFactsStorage {
     try {
       return await _storage.getString(key);
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return null;
     }
   }
@@ -111,7 +110,7 @@ class MathFactsStorage {
       await _storage.setInt(key, value);
       return true;
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return false;
     }
   }
@@ -121,7 +120,7 @@ class MathFactsStorage {
     try {
       return await _storage.getInt(key);
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return null;
     }
   }
@@ -132,7 +131,7 @@ class MathFactsStorage {
       await _storage.remove(key);
       return true;
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return false;
     }
   }
@@ -143,7 +142,7 @@ class MathFactsStorage {
       await _storage.setBool(key, value);
       return true;
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return false;
     }
   }
@@ -153,7 +152,7 @@ class MathFactsStorage {
     try {
       return await _storage.getBool(key);
     } catch (e) {
-      print('   Storage error: $e');
+      debugPrint('   Storage error: $e');
       return false;
     }
   }
@@ -166,12 +165,12 @@ class MathFactsStorage {
   /// Set initialization status
   Future<void> setInitialized(bool value) async {
     await _saveBool(_isInitializedKey, value);
-    print('🔧 Initialization status set to: $value');
+    debugPrint('🔧 Initialization status set to: $value');
   }
 
   /// Initialize app with all math facts
   Future<void> initializeApp() async {
-    print('🚀 Initializing app...');
+    debugPrint('🚀 Initializing app...');
 
     // Generate all addition facts (121 facts)
     final additionFacts = <MathFact>[];
@@ -204,7 +203,7 @@ class MathFactsStorage {
     // Mark as initialized
     await setInitialized(true);
 
-    print(
+    debugPrint(
         '✅ App initialized with ${allFacts.length} facts (${additionFacts.length} addition, ${subtractionFacts.length} subtraction)');
   }
 
@@ -213,14 +212,14 @@ class MathFactsStorage {
     final factsJson = facts.map((fact) => fact.toJson()).toList();
     final jsonString = jsonEncode(factsJson);
 
-    print(
+    debugPrint(
         '💾 Storage: Saving ${facts.length} facts (${jsonString.length} bytes)');
     final success = await _saveString(_storageKey, jsonString);
-    print('   Save success: $success');
+    debugPrint('   Save success: $success');
 
     // Verify the save by reading it back
     final verification = await _loadString(_storageKey);
-    print(
+    debugPrint(
         '   Verification: ${verification != null && verification.length == jsonString.length}');
   }
 
@@ -234,7 +233,7 @@ class MathFactsStorage {
         f.operation == updatedFact.operation);
 
     if (index == -1) {
-      print('⚠️ Warning: Could not find fact to update');
+      debugPrint('⚠️ Warning: Could not find fact to update');
       return;
     }
 
@@ -251,18 +250,18 @@ class MathFactsStorage {
     final factsJson = allFacts.map((fact) => fact.toJson()).toList();
     final jsonString = jsonEncode(factsJson);
 
-    print(
+    debugPrint(
         '💾 Storage: Updated fact ${updatedFact.factString} (${jsonString.length} bytes total)');
     await _saveString(_storageKey, jsonString);
   }
 
   /// Load all math facts from persistent storage
   Future<List<MathFact>?> loadFacts() async {
-    print('🔍 Storage: Loading facts...');
+    debugPrint('🔍 Storage: Loading facts...');
 
     final factsString = await _loadString(_storageKey);
 
-    print(
+    debugPrint(
         '   Found data: ${factsString != null} (${factsString?.length ?? 0} bytes)');
 
     if (factsString == null || factsString.isEmpty) return null;
@@ -272,10 +271,10 @@ class MathFactsStorage {
       final facts = factsList
           .map((json) => MathFact.fromJson(json as Map<String, dynamic>))
           .toList();
-      print('   Loaded ${facts.length} facts');
+      debugPrint('   Loaded ${facts.length} facts');
       return facts;
     } catch (e) {
-      print('   Error parsing facts: $e');
+      debugPrint('   Error parsing facts: $e');
       return null;
     }
   }
@@ -303,7 +302,7 @@ class MathFactsStorage {
     await _remove(_scoreKey);
     await _remove(_questionsKey);
     await _remove(_isInitializedKey);
-    print('🗑️ Storage cleared');
+    debugPrint('🗑️ Storage cleared');
   }
 }
 
@@ -315,10 +314,10 @@ void main() async {
   final isInitialized = await storage.isInitialized();
 
   if (!isInitialized) {
-    print('📋 First run detected - initializing app...');
+    debugPrint('📋 First run detected - initializing app...');
     await storage.initializeApp();
   } else {
-    print('✅ App already initialized');
+    debugPrint('✅ App already initialized');
   }
 
   runApp(const MathFactsApp());
@@ -414,50 +413,50 @@ class HomeScreen extends StatelessWidget {
   Future<void> _viewStorage(BuildContext context) async {
     final storage = MathFactsStorage();
 
-    print('\n========================================');
-    print('📊 STORAGE CONTENTS');
-    print('========================================\n');
+    debugPrint('\n========================================');
+    debugPrint('📊 STORAGE CONTENTS');
+    debugPrint('========================================\n');
 
     // Get initialization status
     final isInitialized = await storage.isInitialized();
-    print('🔧 Initialized: $isInitialized');
+    debugPrint('🔧 Initialized: $isInitialized');
 
     // Get all facts
     final facts = await storage.loadFacts();
-    print('\n📚 Math Facts: ${facts?.length ?? 0} total');
+    debugPrint('\n📚 Math Facts: ${facts?.length ?? 0} total');
     if (facts != null) {
       final additionFacts = facts.where((f) => f.operation == '+').toList();
       final subtractionFacts = facts.where((f) => f.operation == '-').toList();
-      print('   ➕ Addition: ${additionFacts.length}');
-      print('   ➖ Subtraction: ${subtractionFacts.length}');
+      debugPrint('   ➕ Addition: ${additionFacts.length}');
+      debugPrint('   ➖ Subtraction: ${subtractionFacts.length}');
 
       // Show practiced facts
       final practiced = facts.where((f) => f.attempts > 0).toList();
-      print('\n📝 Practiced Facts: ${practiced.length}');
+      debugPrint('\n📝 Practiced Facts: ${practiced.length}');
       for (var fact in practiced.take(10)) {
-        print(
+        debugPrint(
             '   ${fact.factString} = ${fact.answer} | Attempts: ${fact.attempts}, Correct: ${fact.correctCount}, Accuracy: ${(fact.accuracy * 100).toStringAsFixed(1)}%');
       }
       if (practiced.length > 10) {
-        print('   ... and ${practiced.length - 10} more');
+        debugPrint('   ... and ${practiced.length - 10} more');
       }
 
       // Show mastered facts
       final mastered = facts.where((f) => f.isMastered).toList();
-      print('\n✅ Mastered Facts: ${mastered.length}');
+      debugPrint('\n✅ Mastered Facts: ${mastered.length}');
     }
 
     // Get session stats
     final stats = await storage.loadSessionStats();
-    print('\n📈 Session Statistics:');
-    print('   Score: ${stats['score']} / ${stats['questionsAnswered']}');
+    debugPrint('\n📈 Session Statistics:');
+    debugPrint('   Score: ${stats['score']} / ${stats['questionsAnswered']}');
     if (stats['questionsAnswered']! > 0) {
       final percentage = (stats['score']! / stats['questionsAnswered']! * 100)
           .toStringAsFixed(1);
-      print('   Accuracy: $percentage%');
+      debugPrint('   Accuracy: $percentage%');
     }
 
-    print('\n========================================\n');
+    debugPrint('\n========================================\n');
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -485,29 +484,29 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.calculate,
               size: 80,
               color: Colors.blue,
             ),
-            SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'Welcome to MathFacts!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'Learn math facts through active retrieval',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
             ),
-            SizedBox(height: 40),
-            Row(
+            const SizedBox(height: 40),
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Flexible(
@@ -519,7 +518,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () => _resetStorage(context),
               icon: const Icon(Icons.storage),
@@ -531,7 +530,7 @@ class HomeScreen extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => _viewStorage(context),
               icon: const Icon(Icons.visibility),
@@ -631,30 +630,30 @@ class _PracticeScreenState extends State<PracticeScreen> {
     final savedStats = await _storage.loadSessionStats();
 
     // Debug logging
-    print('🔍 Loading saved data for ${widget.operation}...');
-    print('   Saved facts: ${savedFacts?.length ?? 0}');
-    print('   Saved score: ${savedStats['score']}');
-    print('   Saved questions: ${savedStats['questionsAnswered']}');
+    debugPrint('🔍 Loading saved data for ${widget.operation}...');
+    debugPrint('   Saved facts: ${savedFacts?.length ?? 0}');
+    debugPrint('   Saved score: ${savedStats['score']}');
+    debugPrint('   Saved questions: ${savedStats['questionsAnswered']}');
 
     setState(() {
       if (savedFacts != null && savedFacts.isNotEmpty) {
         // Filter facts for this operation only
         _allFacts =
             savedFacts.where((f) => f.operation == widget.operation).toList();
-        print(
+        debugPrint(
             '✅ Loaded ${_allFacts.length} ${widget.operation} facts from storage');
 
         // Debug: Show some stats about loaded facts
         final practiced = _allFacts.where((f) => f.attempts > 0).length;
         final mastered = _allFacts.where((f) => f.isMastered).length;
-        print('   Facts with attempts: $practiced');
-        print('   Facts mastered: $mastered');
+        debugPrint('   Facts with attempts: $practiced');
+        debugPrint('   Facts mastered: $mastered');
 
         // Show details of first few practiced facts
         final practicedFacts =
             _allFacts.where((f) => f.attempts > 0).take(3).toList();
         for (var fact in practicedFacts) {
-          print(
+          debugPrint(
               '   ${fact.factString}: ${fact.attempts} attempts, ${fact.correctCount} correct');
         }
       } else {
@@ -665,7 +664,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
       // If no facts for this operation exist, generate them
       if (_allFacts.isEmpty) {
         _generateAllFacts();
-        print('🆕 Generated new ${widget.operation} facts');
+        debugPrint('🆕 Generated new ${widget.operation} facts');
 
         // Save the newly generated facts immediately
         _saveAllFacts();
@@ -714,10 +713,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
         }
       }
     }
-    print('🔧 Generated ${_allFacts.length} facts for ${widget.operation}');
+    debugPrint(
+        '🔧 Generated ${_allFacts.length} facts for ${widget.operation}');
     if (_allFacts.isNotEmpty) {
-      print('   First fact: ${_allFacts[0].factString}');
-      print('   Last fact: ${_allFacts[_allFacts.length - 1].factString}');
+      debugPrint('   First fact: ${_allFacts[0].factString}');
+      debugPrint('   Last fact: ${_allFacts[_allFacts.length - 1].factString}');
     }
   }
 
@@ -760,10 +760,10 @@ class _PracticeScreenState extends State<PracticeScreen> {
     _currentFact!.recordAttempt(isCorrect);
 
     // Debug: Verify the fact was updated
-    print('📝 Updated fact: ${_currentFact!.factString}');
-    print(
+    debugPrint('📝 Updated fact: ${_currentFact!.factString}');
+    debugPrint(
         '   Attempts: ${_currentFact!.attempts}, Correct: ${_currentFact!.correctCount}');
-    print(
+    debugPrint(
         '   Needs practice: ${_currentFact!.needsPractice}, Mastered: ${_currentFact!.isMastered}');
 
     setState(() {
@@ -917,7 +917,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: baseColor.withOpacity(0.2),
+            backgroundColor: baseColor.withValues(alpha: 0.2),
             foregroundColor: Colors.black,
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle:
@@ -936,9 +936,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Future<void> _saveProgress() async {
     if (_currentFact == null) return;
 
-    print('💾 Saving progress...');
-    print('   Updated fact: ${_currentFact!.factString}');
-    print('   Score: $_score / $_questionsAnswered');
+    debugPrint('💾 Saving progress...');
+    debugPrint('   Updated fact: ${_currentFact!.factString}');
+    debugPrint('   Score: $_score / $_questionsAnswered');
 
     // Load all facts from storage (both operations)
     final allStoredFacts = await _storage.loadFacts() ?? [];
@@ -959,12 +959,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
     await _storage.saveFacts(allStoredFacts);
     await _storage.saveSessionStats(_score, _questionsAnswered);
 
-    print('✅ Progress saved');
+    debugPrint('✅ Progress saved');
   }
 
   /// Save all facts for this operation (used when generating new facts)
   Future<void> _saveAllFacts() async {
-    print('💾 Saving all ${_allFacts.length} ${widget.operation} facts...');
+    debugPrint(
+        '💾 Saving all ${_allFacts.length} ${widget.operation} facts...');
 
     // Load all facts from storage (both operations)
     final allStoredFacts = await _storage.loadFacts() ?? [];
@@ -978,7 +979,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
     // Save combined facts
     await _storage.saveFacts(allStoredFacts);
 
-    print('✅ All facts saved (${allStoredFacts.length} total)');
+    debugPrint('✅ All facts saved (${allStoredFacts.length} total)');
   }
 
   @override
