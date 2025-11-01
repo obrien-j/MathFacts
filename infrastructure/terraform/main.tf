@@ -44,7 +44,7 @@ resource "azurerm_storage_account" "main" {
   account_replication_type = "LRS"
   
   # Security: Require HTTPS for all connections
-  enable_https_traffic_only = true
+  https_traffic_only_enabled = true
   
   # Security: Use TLS 1.2 minimum
   min_tls_version = "TLS1_2"
@@ -59,13 +59,8 @@ resource "azurerm_storage_account" "main" {
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    ip_rules                   = [] # Add your IPs for management access
+    ip_rules                   = var.management_ip_addresses # Add your IPs for management access
     virtual_network_subnet_ids = []
-  }
-  
-  # Enable table storage
-  table_retention_policy {
-    days = 7
   }
   
   tags = var.tags
@@ -127,7 +122,7 @@ resource "azurerm_linux_function_app" "main" {
     }
     
     # Security: Minimum TLS version
-    min_tls_version = "1.2"
+    minimum_tls_version = "1.2"
     
     # Security: Disable FTP
     ftps_state = "Disabled"
@@ -162,7 +157,7 @@ resource "azurerm_role_assignment" "function_storage_table" {
 }
 
 # Static Web App for Flutter web hosting
-resource "azurerm_static_site" "main" {
+resource "azurerm_static_web_app" "main" {
   name                = "${var.project_name}-${var.environment}-swa"
   location            = "Central US" # Static Web Apps don't support Canada yet, but data stays regional
   resource_group_name = azurerm_resource_group.main.name
@@ -188,7 +183,7 @@ resource "azurerm_key_vault" "main" {
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
-    ip_rules       = [] # Add your IPs for management
+    ip_rules       = var.management_ip_addresses # Add your IPs for management
   }
   
   # Security: Enable RBAC instead of access policies

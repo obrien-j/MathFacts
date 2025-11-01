@@ -28,17 +28,17 @@ output "function_app_url" {
 
 output "static_web_app_name" {
   description = "Name of the Static Web App"
-  value       = azurerm_static_site.main.name
+  value       = azurerm_static_web_app.main.name
 }
 
 output "static_web_app_url" {
   description = "URL of the Static Web App"
-  value       = "https://${azurerm_static_site.main.default_host_name}"
+  value       = "https://${azurerm_static_web_app.main.default_host_name}"
 }
 
 output "static_web_app_api_key" {
   description = "API key for Static Web App deployment"
-  value       = azurerm_static_site.main.api_key
+  value       = azurerm_static_web_app.main.api_key
   sensitive   = true
 }
 
