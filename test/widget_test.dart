@@ -16,6 +16,7 @@ void main() {
 
     // Verify that the home screen loads with welcome text
     expect(find.text('Welcome to MathFacts!'), findsOneWidget);
-    expect(find.text('Practice Math Facts'), findsOneWidget);
+    expect(find.text('Practice Addition'), findsOneWidget);
+    expect(find.text('Practice Subtraction'), findsOneWidget);
   });
 }
