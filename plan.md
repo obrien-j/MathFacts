@@ -120,29 +120,50 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 ## Current Sprint: Cloud Storage & User Profiles (Azure)
 
 ### Implementation Steps
-1. **Azure Setup**: Configure Azure project and Flutter integration
-   - Create Azure account and resource group
-   - Set up Azure Static Web Apps for hosting Flutter web app
-   - Create Azure Functions (Consumption plan) for backend API
-   - Configure Azure AD B2C for authentication
-   - Set up Azure Table Storage for data persistence
-2. **User Profile Model**: Define minimal user data structure
-3. **Authentication**: Implement Azure AD B2C authentication in Flutter
+1. **Azure Infrastructure (Terraform)** ✅ COMPLETED
+   - ✅ Terraform configuration created for all Azure resources
+   - ✅ Security best practices implemented (HTTPS, Managed Identity, RBAC)
+   - ✅ Canadian data residency enforced
+   - ✅ Key Vault for secrets management
+   - ✅ Network security (deny by default)
+   - ⏳ Manual deployment guide ready
+   - [ ] Initial deployment to Azure
+   - [ ] GitHub Actions for automated updates (next phase)
+   
+2. **Azure AD B2C Setup** ⏳ NEXT
+   - [ ] Create B2C tenant (Canada region)
+   - [ ] Register application
+   - [ ] Configure sign-up/sign-in user flow
+   - [ ] Update Terraform with B2C configuration
+
+3. **User Profile Model**: Define minimal user data structure
 4. **Backend API**: Create Azure Functions for data operations
    - GET /api/progress - Retrieve user progress
    - POST /api/progress - Save user progress
    - Functions validate B2C tokens and access Table Storage
-5. **Cloud Storage**: Design Table Storage schema for user progress data
-6. **Sync Logic**: Implement save/load MathFact performance to/from Azure
-7. **Offline Support**: Cache data locally and sync when online
+5. **Cloud Storage Schema**: Design Table Storage schema for user progress data
+6. **Flutter Integration**: Implement Azure AD B2C authentication in Flutter
+7. **Sync Logic**: Implement save/load MathFact performance to/from Azure
+8. **Offline Support**: Cache data locally and sync when online
 
-### Azure Services to Use (Cost-Optimized)
-- **Azure AD B2C**: User authentication (~$0/month, free tier: 50K auths)
-- **Azure Table Storage**: NoSQL storage for user progress (~$0-1/month)
-- **Azure Functions (Consumption)**: Backend API (~$0/month, free tier: 1M executions)
+### Infrastructure Created (Terraform)
 - **Azure Static Web Apps**: Flutter web app hosting (~$0/month, free tier)
+- **Azure Functions (Consumption)**: Backend API (~$0/month, free tier: 1M executions)
+- **Azure Table Storage**: NoSQL storage for user progress (~$0-1/month)
+- **Azure Key Vault**: Secure secrets management (~$0-1/month)
+- **Application Insights**: Monitoring and telemetry (~$0/month, 5GB free)
+- **Azure AD B2C**: User authentication (~$0/month, free tier: 50K auths)
 
-**Total Estimated Cost**: ~$0-1/month for small-medium usage
+**Total Estimated Cost**: ~$0-3/month for small-medium usage
+
+**Security Features**:
+- ✅ All resources in Canada Central region
+- ✅ HTTPS/TLS 1.2+ everywhere
+- ✅ Managed Identity (no credentials in code)
+- ✅ RBAC for resource access
+- ✅ Network rules (deny by default)
+- ✅ Infrastructure encryption at rest
+- ✅ Key Vault for centralized secrets
 
 ### Architecture Flow
 1. User authenticates with Azure AD B2C → Gets token
@@ -151,13 +172,19 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 4. Functions return user-specific data to Flutter app
 
 ### Success Criteria
+- [x] Terraform infrastructure code created with security best practices
+- [x] Canadian data residency enforced
+- [x] Infrastructure documentation complete (ARCHITECTURE.md)
+- [x] Manual deployment guide ready (SETUP.md)
+- [ ] Infrastructure deployed to Azure
+- [ ] Azure AD B2C tenant created and configured
 - [ ] Flutter web app hosted on Azure Static Web Apps
-- [ ] Users can create simple profiles with Azure AD B2C
 - [ ] Azure Functions API handles authenticated requests
 - [ ] Progress data persists in Azure Table Storage
 - [ ] Data syncs across devices via Azure backend
 - [ ] Offline mode works with local caching
 - [ ] Existing fact tracking continues to work
+- [ ] GitHub Actions CI/CD pipeline configured
 
 ## Architecture Evolution
 

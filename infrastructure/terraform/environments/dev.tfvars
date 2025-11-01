@@ -8,7 +8,7 @@ tags = {
   Project     = "MathFacts"
   Environment = "dev"
   ManagedBy   = "Terraform"
-  Owner       = "Development Team"
+  Owner       = "boardom_ca"
   DataResidency = "Canada"
 }
 
@@ -16,7 +16,7 @@ tags = {
 allowed_origins = ["*"] # Will be restricted after Static Web App deployment
 
 # Security: Management access IPs (add your IPs for storage/key vault access)
-# management_ip_addresses = ["your.ip.address.here"]
+# management_ip_addresses = ["184.147.198.222"]
 
 # B2C configuration (fill in after creating B2C tenant)
 # b2c_tenant_name = "your-tenant-name"

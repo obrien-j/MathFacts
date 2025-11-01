@@ -11,12 +11,12 @@ terraform {
   }
 
   # Optional: Configure remote state storage (recommended for team collaboration)
-  # backend "azurerm" {
-  #   resource_group_name  = "terraform-state-rg"
-  #   storage_account_name = "tfstatemathfacts"
-  #   container_name       = "tfstate"
-  #   key                  = "mathfacts.terraform.tfstate"
-  # }
+  backend "azurerm" {
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "tfstatemathfacts"
+    container_name       = "tfstate"
+    key                  = "mathfacts.terraform.tfstate"
+  }
 }
 
 provider "azurerm" {
