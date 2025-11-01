@@ -1,5 +1,16 @@
 # MathFacts Learning App - Development Plan
 
+## Development Principles
+
+### Minimalism & Necessity
+**Rule**: Only add files, dependencies, and features that are immediately necessary and functional.
+- ❌ No placeholder files, empty directories, or "future" assets
+- ❌ No speculative code or premature abstractions  
+- ✅ Add only what's needed for current functionality
+- ✅ Refactor and expand when requirements demand it
+
+---
+
 ## Project Overview
 Building an Android mobile app to help kids (ages 6-15) learn math facts using evidence-based learning science principles including active retrieval, spaced repetition, interleaving, and the test effect.
 

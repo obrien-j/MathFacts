@@ -1,5 +1,18 @@
 # MathFacts App Architecture
 
+## Development Principles
+
+### Minimalism & Necessity
+**Rule**: Only add files, dependencies, and features that are immediately necessary and functional.
+- ❌ No placeholder files, empty directories, or "future" assets
+- ❌ No speculative code or premature abstractions
+- ✅ Add only what's needed for current functionality
+- ✅ Refactor and expand when requirements demand it
+
+**Rationale**: Keep the codebase lean, maintainable, and focused. Every file should serve a current purpose.
+
+---
+
 ## Overview
 
 MathFacts is a Flutter app designed to help children ages 6-15 develop automaticity with single-digit math facts (addition and subtraction, with multiplication planned) using evidence-based learning science principles. The app prioritizes simplicity and effectiveness over complex gamification.
