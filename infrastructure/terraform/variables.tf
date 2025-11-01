@@ -33,25 +33,26 @@ variable "tags" {
   }
 }
 
-# Azure AD B2C variables (optional, configure after B2C setup)
-variable "b2c_tenant_name" {
-  description = "Azure AD B2C tenant name"
+# Microsoft Entra External ID variables (for customer authentication)
+variable "entra_tenant_id" {
+  description = "Microsoft Entra External ID tenant ID"
   type        = string
   default     = ""
   sensitive   = false
 }
 
-variable "b2c_client_id" {
-  description = "Azure AD B2C client ID"
+variable "entra_client_id" {
+  description = "Microsoft Entra External ID application (client) ID"
   type        = string
   default     = ""
   sensitive   = true
 }
 
-variable "b2c_policy_name" {
-  description = "Azure AD B2C sign-up/sign-in policy name"
+variable "entra_authority" {
+  description = "Microsoft Entra External ID authority URL"
   type        = string
-  default     = "B2C_1_signupsignin"
+  default     = ""
+  sensitive   = false
 }
 
 # Security variables

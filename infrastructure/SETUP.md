@@ -347,64 +347,112 @@ terraform apply -var-file="environments/dev.tfvars"
 
 ---
 
-## Step 11: Set Up Azure AD B2C (Authentication)
+## Step 11: Set Up Microsoft Entra External ID (Authentication)
 
-### Create B2C Tenant
+### Create External ID Tenant (If Not Done)
+
+If you haven't created the External ID tenant yet:
 
 1. Go to [Azure Portal](https://portal.azure.com)
-2. Search for "Azure AD B2C" and click "Create"
-3. Choose "Create a new Azure AD B2C Tenant"
+2. Search for "Microsoft Entra External ID"
+3. Click "Create" → "External ID for customers"
 4. Fill in:
-   - **Organization name**: MathFacts
-   - **Initial domain name**: mathfacts (or something unique)
-   - **Country/Region**: Canada
+   - **Tenant name**: MathFacts
+   - **Domain name**: mathfacts (or unique name)
+   - **Location**: Canada
 5. Click "Review + Create"
+6. Wait 2 minutes for creation
+7. **Copy the Tenant ID** from the Overview page
 
-**This takes 1-2 minutes to create.**
+### Register Application (Manual - Required)
 
-### Register Application in B2C
+**Important**: For External ID for customers tenants, app registration must be done through the Azure Portal.
 
-1. Navigate to your B2C tenant
-2. Go to "App registrations" → "New registration"
-3. Fill in:
-   - **Name**: MathFacts Web App
-   - **Supported account types**: Accounts in any identity provider or organizational directory
-   - **Redirect URI**: Web → `https://YOUR-SWA-URL/callback`
-4. Click "Register"
+1. **Switch to your External ID tenant**:
+   - Click your profile icon (top right)
+   - Click "Switch directory"
+   - Select your External ID tenant (Tenant ID: `f13f4b52-a95e-4af4-8c6d-373a94bfc94c`)
 
-### Save Application (client) ID
+2. **Navigate to App registrations**:
+   - Search for "Microsoft Entra ID" or "Entra ID"
+   - Click "App registrations"
+   - Click "New registration"
 
-1. Copy the "Application (client) ID" from the overview page
-2. Save it - you'll need this for configuration
+3. **Configure the registration**:
+   - **Name**: `MathFacts Web App`
+   - **Supported account types**: "Accounts in this organizational directory only"
+   - **Platform**: Select "Single-page application (SPA)"
+   - **Redirect URI**: `https://red-plant-077d31610.3.azurestaticapps.net/`
+   - Click "Register"
 
-### Create User Flow
+4. **Save the Client ID**:
+   - Copy the **Application (client) ID** from the Overview page
+   - You'll need this for configuration
 
-1. In B2C tenant, go to "User flows"
-2. Click "New user flow"
-3. Select "Sign up and sign in"
-4. Choose "Recommended" version
-5. Name it: `B2C_1_signupsignin`
-6. Configure:
-   - Identity providers: Email signup
-   - User attributes: Email Address, Display Name
-   - Application claims: Email Addresses, Display Name, User's Object ID
-7. Click "Create"
+5. **Add localhost redirect** (for development):
+   - Go to "Authentication"
+   - Under "Single-page application", click "Add URI"
+   - Add: `http://localhost:3000/`
+   - Click "Save"
+
+6. **Enable tokens**:
+   - Still in "Authentication"
+   - Under "Implicit grant and hybrid flows":
+     - ✅ Check "Access tokens"
+     - ✅ Check "ID tokens"
+   - Click "Save"
+
+7. **Configure API permissions**:
+   - Go to "API permissions"
+   - The app already has `User.Read` - this is sufficient
+   - (Optional) Add additional permissions if needed:
+     - Click "Add a permission" → "Microsoft Graph" → "Delegated permissions"
+     - Add: `email`, `profile`, `openid` (usually included by default)
+   - Click "Add permissions"
+
+8. **Grant admin consent** (Required):
+   - Click "Grant admin consent for [Your Tenant Name]"
+   - Click "Yes"
+   - Verify green checkmarks ✅ appear next to all permissions
 
 ### Update Terraform Configuration
 
-Edit `environments/dev.tfvars`:
+Edit `environments/dev.tfvars` with the values from the portal:
 
 ```hcl
-b2c_tenant_name = "mathfacts"  # Your B2C tenant name
-b2c_client_id   = "YOUR-CLIENT-ID-HERE"
-b2c_policy_name = "B2C_1_signupsignin"
+# Microsoft Entra External ID configuration
+entra_tenant_id = "f13f4b52-a95e-4af4-8c6d-373a94bfc94c"
+entra_client_id = "YOUR-CLIENT-ID-FROM-PORTAL"  # From step 4 above
+entra_authority = "https://login.microsoftonline.com/f13f4b52-a95e-4af4-8c6d-373a94bfc94c"
 ```
 
-Uncomment B2C settings in `main.tf` app_settings, then re-apply:
+### Enable Entra in Function App
+
+Uncomment the Entra settings in `infrastructure/terraform/main.tf` (around line 175):
+
+```hcl
+# Microsoft Entra External ID settings
+"ENTRA_TENANT_ID"  = var.entra_tenant_id
+"ENTRA_CLIENT_ID"  = var.entra_client_id
+"ENTRA_AUTHORITY"  = var.entra_authority
+```
+
+Then re-apply Terraform:
 
 ```powershell
 terraform apply -var-file="environments/dev.tfvars"
 ```
+
+### Verify Setup
+
+1. In Azure Portal, navigate to your External ID tenant
+2. Go to "App registrations" → "MathFacts Web App"
+3. Verify:
+   - ✅ Redirect URIs configured
+   - ✅ API permissions granted with admin consent
+   - ✅ Client ID matches your tfvars file
+
+**Note**: The service principal (Enterprise App) is automatically created when you register the app - no manual action needed.
 
 ---
 

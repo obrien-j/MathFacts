@@ -68,3 +68,9 @@ output "function_app_identity_principal_id" {
   description = "Principal ID of the Function App managed identity"
   value       = azurerm_linux_function_app.main.identity[0].principal_id
 }
+
+# Microsoft Entra External ID Configuration Notes
+# App registration should be done manually in the Azure Portal
+# See SETUP.md Step 11 for detailed instructions
+# After registration, add the client_id to dev.tfvars
+

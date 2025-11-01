@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 
   # Optional: Configure remote state storage (recommended for team collaboration)
@@ -26,6 +30,16 @@ provider "azurerm" {
     }
   }
 }
+
+# Generate random suffix for globally unique resource names
+resource "random_string" "suffix" {
+  length  = 4
+  special = false
+  upper   = false
+}
+
+# Get current Azure client configuration
+data "azurerm_client_config" "current" {}
 
 # Resource Group
 resource "azurerm_resource_group" "main" {
@@ -55,11 +69,11 @@ resource "azurerm_storage_account" "main" {
   # Security: Enable infrastructure encryption
   infrastructure_encryption_enabled = true
   
-  # Security: Network rules (restrict to Azure services by default)
+  # Security: Network rules (deny public access by default)
   network_rules {
     default_action             = "Deny"
     bypass                     = ["AzureServices"]
-    ip_rules                   = var.management_ip_addresses # Add your IPs for management access
+    ip_rules                   = var.management_ip_addresses
     virtual_network_subnet_ids = []
   }
   
@@ -72,12 +86,24 @@ resource "azurerm_storage_table" "user_progress" {
   storage_account_name = azurerm_storage_account.main.name
 }
 
+# Log Analytics Workspace for Application Insights
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "${var.project_name}-${var.environment}-law"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  
+  tags = var.tags
+}
+
 # Application Insights for monitoring
 resource "azurerm_application_insights" "main" {
   name                = "${var.project_name}-${var.environment}-ai"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.main.id
   
   tags = var.tags
 }
@@ -140,10 +166,10 @@ resource "azurerm_linux_function_app" "main" {
     # Security: Disable remote debugging
     "REMOTE_DEBUGGING_ENABLED" = "false"
     
-    # Azure AD B2C settings (configure these after B2C setup)
-    # "B2C_TENANT_NAME"              = var.b2c_tenant_name
-    # "B2C_CLIENT_ID"                = var.b2c_client_id
-    # "B2C_POLICY_NAME"              = var.b2c_policy_name
+    # Microsoft Entra External ID settings
+    "ENTRA_TENANT_ID"  = var.entra_tenant_id
+    "ENTRA_CLIENT_ID"  = var.entra_client_id
+    "ENTRA_AUTHORITY"  = var.entra_authority
   }
   
   tags = var.tags
@@ -169,7 +195,7 @@ resource "azurerm_static_web_app" "main" {
 
 # Security: Key Vault for storing secrets
 resource "azurerm_key_vault" "main" {
-  name                       = "${var.project_name}-${var.environment}-kv"
+  name                       = "${var.project_name}-${var.environment}-kv-${random_string.suffix.result}" # Add random suffix for uniqueness
   location                   = azurerm_resource_group.main.location
   resource_group_name        = azurerm_resource_group.main.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -179,11 +205,11 @@ resource "azurerm_key_vault" "main" {
   soft_delete_retention_days = 7
   purge_protection_enabled   = false # Enable in production
   
-  # Security: Network ACLs
+  # Security: Network ACLs (deny public access by default)
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
-    ip_rules       = var.management_ip_addresses # Add your IPs for management
+    ip_rules       = var.management_ip_addresses
   }
   
   # Security: Enable RBAC instead of access policies
@@ -199,5 +225,24 @@ resource "azurerm_role_assignment" "function_keyvault_secrets" {
   principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
 }
 
-# Data source to get current Azure client configuration
-data "azurerm_client_config" "current" {}
+# ===================================================================
+# Microsoft Entra External ID - MANUAL SETUP REQUIRED
+# ===================================================================
+# Note: For External ID for customers tenants, Microsoft recommends
+# manual app registration through the Azure Portal:
+# 1. Switch to your External ID tenant (f13f4b52-a95e-4af4-8c6d-373a94bfc94c)
+# 2. Go to App registrations → New registration
+# 3. Name: mathfacts-dev-web
+# 4. Supported accounts: Accounts in this organizational directory only
+# 5. Platform: Single-page application (SPA)
+# 6. Redirect URI: https://red-plant-077d31610.3.azurestaticapps.net/
+# 7. Add permission: User.Read, email, profile, openid
+# 8. Grant admin consent
+#
+# Service principal is automatically created when you register the app.
+#
+# After registration, update dev.tfvars with:
+#   entra_client_id = "your-client-id-from-portal"
+#
+# ===================================================================
+
