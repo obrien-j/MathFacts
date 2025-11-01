@@ -51,23 +51,23 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 - ✅ Progress display showing facts practiced and mastered
 - ✅ Individual fact performance recording
 
-#### Step 2: Spaced Repetition Algorithm ⏳ NEXT UP
-**Goal**: Show facts based on performance history
-- [ ] Implement spaced repetition intervals (1, 3, 7, 14, 30 days)
-- [ ] Prioritize struggling facts for more frequent practice
-- [ ] Reduce frequency of mastered facts
-
-#### Step 3: Mastery System
+#### Step 2: Mastery System ⏳ NEXT UP
 **Goal**: Define and track when facts are "mastered"
 - [ ] Set mastery criteria (e.g., 3 consecutive correct responses)
 - [ ] Visual indicators for mastered vs. learning facts
 - [ ] Celebration animations for newly mastered facts
 
-#### Step 4: Progress Visualization
+#### Step 3: Progress Visualization
 **Goal**: Show learning progress clearly
 - [ ] Grid view of all 121 facts with status colors
 - [ ] Progress bars for overall mastery
 - [ ] Daily/weekly practice summaries
+
+#### Step 4: Spaced Repetition Algorithm
+**Goal**: Show facts based on performance history
+- [ ] Implement spaced repetition intervals (1, 3, 7, 14, 30 days)
+- [ ] Prioritize struggling facts for more frequent practice
+- [ ] Reduce frequency of mastered facts
 
 ### 🎯 PRIORITY 2: User Experience Enhancement
 
@@ -82,12 +82,22 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 - [ ] Dark mode support
 - [ ] Accessibility improvements
 
-### 🎯 PRIORITY 3: Technical Foundation
+### 🎯 PRIORITY 3: Technical Foundation ⏳ CURRENT FOCUS
 
-#### Data Persistence
-- [ ] Local storage for web (IndexedDB/LocalStorage)
-- [ ] SQLite for mobile platforms
-- [ ] Progress synchronization
+#### User Profiles & Authentication
+**Goal**: Enable user identification and personalized experience
+- [ ] Minimal user profile system (username, optional display name)
+- [ ] Simple authentication (email/password or anonymous)
+- [ ] User ID for data association
+
+#### Cloud Storage & Persistence
+**Goal**: Persist user progress and sync across devices
+- [ ] Azure Static Web Apps setup for hosting Flutter web app
+- [ ] Azure Functions (Consumption) for backend API
+- [ ] Azure Table Storage for data persistence
+- [ ] Save/load user progress data (MathFact performance)
+- [ ] Real-time sync across devices
+- [ ] Offline support with local caching
 
 #### Architecture
 - [ ] Restore complex architecture (services, repositories)
@@ -107,20 +117,47 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 - [ ] Custom fact ranges
 - [ ] Parent/teacher dashboard
 
-## Current Sprint: Individual Fact Tracking
+## Current Sprint: Cloud Storage & User Profiles (Azure)
 
 ### Implementation Steps
-1. **Create MathFact Model**: Define data structure for individual facts
-2. **Generate Fact List**: Create all 121 addition combinations
-3. **Performance Tracking**: Track attempts, successes, timestamps
-4. **Intelligent Selection**: Choose facts based on performance data
-5. **Progress Display**: Show which facts are being worked on
+1. **Azure Setup**: Configure Azure project and Flutter integration
+   - Create Azure account and resource group
+   - Set up Azure Static Web Apps for hosting Flutter web app
+   - Create Azure Functions (Consumption plan) for backend API
+   - Configure Azure AD B2C for authentication
+   - Set up Azure Table Storage for data persistence
+2. **User Profile Model**: Define minimal user data structure
+3. **Authentication**: Implement Azure AD B2C authentication in Flutter
+4. **Backend API**: Create Azure Functions for data operations
+   - GET /api/progress - Retrieve user progress
+   - POST /api/progress - Save user progress
+   - Functions validate B2C tokens and access Table Storage
+5. **Cloud Storage**: Design Table Storage schema for user progress data
+6. **Sync Logic**: Implement save/load MathFact performance to/from Azure
+7. **Offline Support**: Cache data locally and sync when online
+
+### Azure Services to Use (Cost-Optimized)
+- **Azure AD B2C**: User authentication (~$0/month, free tier: 50K auths)
+- **Azure Table Storage**: NoSQL storage for user progress (~$0-1/month)
+- **Azure Functions (Consumption)**: Backend API (~$0/month, free tier: 1M executions)
+- **Azure Static Web Apps**: Flutter web app hosting (~$0/month, free tier)
+
+**Total Estimated Cost**: ~$0-1/month for small-medium usage
+
+### Architecture Flow
+1. User authenticates with Azure AD B2C → Gets token
+2. Flutter app calls Azure Functions API with token
+3. Functions validate token → Access Table Storage via Managed Identity
+4. Functions return user-specific data to Flutter app
 
 ### Success Criteria
-- ✅ App tracks each of 121 addition facts individually
-- ✅ Facts are selected based on performance history
-- ✅ User can see which specific facts need practice
-- ✅ No regression in core functionality
+- [ ] Flutter web app hosted on Azure Static Web Apps
+- [ ] Users can create simple profiles with Azure AD B2C
+- [ ] Azure Functions API handles authenticated requests
+- [ ] Progress data persists in Azure Table Storage
+- [ ] Data syncs across devices via Azure backend
+- [ ] Offline mode works with local caching
+- [ ] Existing fact tracking continues to work
 
 ## Architecture Evolution
 
@@ -151,5 +188,5 @@ Building an Android mobile app to help kids (ages 6-15) learn math facts using e
 - Regular testing with target age group (6-15 years)
 
 ---
-*Last Updated: October 30, 2025*
-*Current Focus: Individual Fact Tracking Implementation*
+*Last Updated: October 31, 2025*
+*Current Focus: Cloud Storage & User Profiles*
